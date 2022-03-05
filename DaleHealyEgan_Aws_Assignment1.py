@@ -43,7 +43,7 @@ instance.wait_until_running()
 instance.reload()
 ip_address = instance.public_ip_address
 print(ip_address)
-bucket_name = "projectx-bucket1-$(date +%F-%s)"
+bucket_name = "projectx-bucket1-daleh1609"
 #try:
 #   myURL = urlopen("http://ww.educative.xyz/")
 #except HTTPError as e:
@@ -57,7 +57,6 @@ try:
     print (response)
 except Exception as error:
     print (error)
-s3.wait_until_exists()
 #try:
 #    response = s3.Object(bucket_name, object_name).put(Body=open(object_name, 'rb'))
 #    print (response)
