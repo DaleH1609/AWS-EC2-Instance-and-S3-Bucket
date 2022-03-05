@@ -1,11 +1,11 @@
 from tkinter import Y
 import boto3
 import sys
-from urllib.request import urlopen, HTTPError, URLError
+import urllib.request
 import webbrowser
 ec2 = boto3.resource('ec2')
 s3 = boto3.resource("s3")
-bucket_name = "projectx-bucket1-$(date +%F-%s)"
+bucket_name = "projectx-bucket1-daleh1610"
 new_instance = ec2.create_instances(
                                     ImageId='ami-033b95fb8079dc481',
                                     MinCount=1,
@@ -43,24 +43,19 @@ instance.wait_until_running()
 instance.reload()
 ip_address = instance.public_ip_address
 print(ip_address)
-bucket_name = "projectx-bucket1-daleh1609"
-#try:
-#   myURL = urlopen("http://ww.educative.xyz/")
-#except HTTPError as e:
-#    print('HTTP Error code: ', e.code)
-#except URLError as e:
-#    print('URL Error: ', e.reason)
-#else:
-#    print('No Error.')#    
+image_url = 'https://bit.ly/2XuVzB4' #the image on the web
+save_name = 'my_image.jpg' #local name to be saved
+urllib.request.urlretrieve("http://devops.witdemo.net/assign1.jpg", "local-filename.jpg")
 try:
     response = s3.create_bucket(Bucket=bucket_name)
     print (response)
 except Exception as error:
     print (error)
-#try:
-#    response = s3.Object(bucket_name, object_name).put(Body=open(object_name, 'rb'))
-#    print (response)
-#except Exception as error:
-#    print (error)
+try:
+    response = s3.Object(bucket_name, "local-filename.jpg").put(Body=open("local-filename.jpg", 'rb'))
+    print (response)
+except Exception as error:
+    print (error)
+
 
 
