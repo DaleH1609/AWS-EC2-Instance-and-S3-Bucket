@@ -7,7 +7,7 @@ ec2 = boto3.resource('ec2')
 s3 = boto3.resource("s3")
 bucket_name = "projectx-bucket1-daleh1610"
 new_instance = ec2.create_instances(
-                                    ImageId='ami-033b95fb8079dc481',
+                                    ImageId='ami-0c293f3f676ec4f90',
                                     MinCount=1,
                                     MaxCount=1,
                                     InstanceType='t2.nano',
@@ -22,7 +22,6 @@ new_instance = ec2.create_instances(
                                     sys
                                     temctl enable httpd
                                     systemctl start httpd
-                                    echo “Hello World from $(hostname -f)” > /var/www/html/index.html
                                     """,
                                     TagSpecifications=[
                                 {
@@ -43,14 +42,18 @@ instance.wait_until_running()
 instance.reload()
 ip_address = instance.public_ip_address
 print(ip_address)
-image_url = 'https://bit.ly/2XuVzB4' #the image on the web
-save_name = 'my_image.jpg' #local name to be saved
+image_url = 'https://bit.ly/2XuVzB4'
+save_name = 'my_image.jpg'
 urllib.request.urlretrieve("http://devops.witdemo.net/assign1.jpg", "local-filename.jpg")
 try:
     response = s3.create_bucket(Bucket=bucket_name)
     print (response)
 except Exception as error:
     print (error)
+website_configuration = {
+    'IndexDocument': {'Suffix': 'index.html'},
+}
+s3.put_bucket_website(Bucket="projectx-bucket1-daleh1610", WebsiteConfiguration=website_configuration)
 try:
     response = s3.Object(bucket_name, "local-filename.jpg").put(Body=open("local-filename.jpg", 'rb'))
     print (response)
