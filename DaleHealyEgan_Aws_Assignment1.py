@@ -84,8 +84,8 @@ htmlcontent = '''
 shellcommand = "echo '" + htmlcontent + "' > index.html"
 
 try:
-    response = s3.Object(bucket_name, "local-filename.jpg").put(Body=open("local-filename.jpg", 'rb'))
-    response1 = s3.Object(bucket_name, "index.html").put(Body=open("index.html", 'rb'))
+    response = s3.Object(bucket_name, "local-filename.jpg").put(ACL='public-read', Body=open("local-filename.jpg", 'rb'))
+    response1 = s3.Object(bucket_name, "index.html").put(ACL='public-read', Body=open("index.html", 'rb'))
     print (response)
     print (response1)
 except Exception as error:
