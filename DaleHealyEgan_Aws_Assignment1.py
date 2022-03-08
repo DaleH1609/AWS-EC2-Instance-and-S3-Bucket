@@ -7,11 +7,11 @@ import webbrowser
 import subprocess
 from datetime import datetime, timedelta
 import time
-ec2 = boto3.resource('ec2')
-s3 = boto3.resource("s3")
-cloudwatch = boto3.resource('cloudwatch')
-bucket_name = "projectx-bucket1-daleh1610"
-new_instance = ec2.create_instances(
+ec2 = boto3.resource('ec2') # creating ec2 object
+s3 = boto3.resource("s3") # creating s3 object
+cloudwatch = boto3.resource('cloudwatch') # creating cloudwatch object for monitor cpu utilization
+bucket_name = "projectx-bucket1-daleh1610" # creating a variable with bucket name
+new_instance = ec2.create_instances( # instance creation
                                     ImageId='ami-0c293f3f676ec4f90',
                                     MinCount=1,
                                     MaxCount=1,
@@ -50,32 +50,33 @@ new_instance = ec2.create_instances(
                                 },
                                     ]
 )
-print (new_instance[0].id)
+print (new_instance[0].id) # logging instance id to ensure instance was created
 instance_id = new_instance[0].id
-instance = ec2.Instance(instance_id)
-instance.wait_until_running()
-instance.reload()
-ip_address = instance.public_ip_address
-print(ip_address)
+instance = ec2.Instance(instance_id) 
+instance.wait_until_running() 
+instance.reload() # using reload to ensure their is sufficient information to be read
+ip_address = instance.public_ip_address # assigning the ip address to a variable
+print(ip_address) # printing the ip address to make sure it has generated successfully
 
-urllib.request.urlretrieve("http://devops.witdemo.net/assign1.jpg", "local-filename.jpg")
+urllib.request.urlretrieve("http://devops.witdemo.net/assign1.jpg", "local-filename.jpg") # using the link to download the following image and naming it local-filename.jpg
 try:
-    response = s3.create_bucket(Bucket=bucket_name)
+    response = s3.create_bucket(Bucket=bucket_name) # creating bucket and assigning it the variable of bucket_name
     print (response)
 except Exception as error:
     print (error)
 
-website_configuration = {
+website_configuration = { # configuring the ws3 site to be static
      'ErrorDocument': {'Key': 'error.html'},
     'IndexDocument': {'Suffix': 'index.html'},
 }
 
-bucket = s3.Bucket(bucket_name)
-bucket_website = s3.BucketWebsite('projectx-bucket1-daleh1610') 
-response = bucket_website.put(WebsiteConfiguration=website_configuration)
-bucket.Acl().put(ACL='public-read')
+bucket = s3.Bucket(bucket_name) # creating a variable for my bucket
+bucket_website = s3.BucketWebsite('projectx-bucket1-daleh1610') # applying static configuration
+response = bucket_website.put(WebsiteConfiguration=website_configuration) # applying static configuration
+bucket.Acl().put(ACL='public-read') # making my bucket public
 
 htmlcontent = '''
+<!DOCTYPE html>
 <html>
     <body>
         <img src="local-filename.jpg">
@@ -85,8 +86,8 @@ htmlcontent = '''
 shellcommand = "echo '" + htmlcontent + "' > index.html"
 
 try:
-    response = s3.Object(bucket_name, "local-filename.jpg").put(ACL='public-read', Body=open("local-filename.jpg", 'rb'))
-    response1 = s3.Object(bucket_name, "index.html").put(ACL='public-read', Body=open("index.html", 'rb'))
+    response = s3.Object(bucket_name, "local-filename.jpg").put(ACL='public-read', Body=open("local-filename.jpg", 'rb')) # adding image to bucket
+    response1 = s3.Object(bucket_name, "index.html").put(ACL='public-read', Body=open("index.html", 'rb'), ContentType='text/html')  # adding html file to bucket
     print (response)
     print (response1)
 except Exception as error:
@@ -94,18 +95,21 @@ except Exception as error:
 
 print(shellcommand)
 subprocess.run(shellcommand, shell=True)
-time.sleep(60)
 print('Opening both EC2 and S3 websites, please wait 1 minute.')
-webbrowser.open_new_tab("http://" + ip_address)
-webbrowser.open_new_tab('https://projectx-bucket1-daleh1610.s3.amazonaws.com/index.html')
+time.sleep(60) # wait 60 seconds before websites load
+try:
+    webbrowser.open_new_tab("http://" + ip_address)
+    webbrowser.open_new_tab('https://projectx-bucket1-daleh1610.s3.amazonaws.com/index.html')
+except Exception as error:
+    print (error)
 
-cmd1 = "ssh -o StrictHostKeyChecking=no -i Dale_HK.pem ec2-user@" + ip_address + " 'pwd'"
+cmd1 = "ssh -o StrictHostKeyChecking=no -i Dale_HK.pem ec2-user@" + ip_address + " 'pwd'" # establishing the ssh connection
 
-cmd2 = "scp -i Dale_HK.pem monitor.sh ec2-user@" + ip_address + ":."
+cmd2 = "scp -i Dale_HK.pem monitor.sh ec2-user@" + ip_address + ":." # secure copying the file to server
 
-cmd3 = "ssh -i Dale_HK.pem ec2-user@" + ip_address + ' chmod 700 monitor.sh'
+cmd3 = "ssh -i Dale_HK.pem ec2-user@" + ip_address + ' chmod 700 monitor.sh' # changing permissions
 
-cmd4 = "ssh -i Dale_HK.pem ec2-user@" + ip_address + ' ./monitor.sh'
+cmd4 = "ssh -i Dale_HK.pem ec2-user@" + ip_address + ' ./monitor.sh' # running file
 
 os.system(cmd1)
 os.system(cmd2)
