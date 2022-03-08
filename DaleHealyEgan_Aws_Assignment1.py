@@ -1,6 +1,7 @@
 from tkinter import Y
 import boto3
 import sys
+import os
 import urllib.request
 import webbrowser
 import subprocess
@@ -93,11 +94,25 @@ except Exception as error:
 
 print(shellcommand)
 subprocess.run(shellcommand, shell=True)
-print('Opening both EC2 and S3 websites, please wait.')
-time.sleep(120)
+time.sleep(60)
+print('Opening both EC2 and S3 websites, please wait 1 minute.')
 webbrowser.open_new_tab("http://" + ip_address)
 webbrowser.open_new_tab('https://projectx-bucket1-daleh1610.s3.amazonaws.com/index.html')
 
+cmd1 = "ssh -o StrictHostKeyChecking=no -i Dale_HK.pem ec2-user@" + ip_address + " 'pwd'"
+
+cmd2 = "scp -i Dale_HK.pem monitor.sh ec2-user@" + ip_address + ":."
+
+cmd3 = "ssh -i Dale_HK.pem ec2-user@" + ip_address + ' chmod 700 monitor.sh'
+
+cmd4 = "ssh -i Dale_HK.pem ec2-user@" + ip_address + ' ./monitor.sh'
+
+os.system(cmd1)
+os.system(cmd2)
+os.system(cmd3)
+os.system(cmd4)
+
+print('')
 print("Checking CPU Utilization, please wait")
 instance.monitor()  # Enables detailed monitoring on instance (1-minute intervals)
 time.sleep(360)     # Wait 6 minutes to ensure we have some data (can remove if not a new instance)
