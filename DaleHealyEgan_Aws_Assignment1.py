@@ -1,3 +1,4 @@
+from curses import keyname
 from tkinter import Y
 import boto3
 import sys
@@ -7,6 +8,7 @@ import webbrowser
 import subprocess
 from datetime import datetime, timedelta
 import time
+key_name="Dale_HK"
 ec2 = boto3.resource('ec2') # creating ec2 object
 s3 = boto3.resource("s3") # creating s3 object
 cloudwatch = boto3.resource('cloudwatch') # creating cloudwatch object for monitor cpu utilization
@@ -16,7 +18,7 @@ new_instance = ec2.create_instances( # instance creation
                                     MinCount=1,
                                     MaxCount=1,
                                     InstanceType='t2.nano',
-                                    KeyName='Dale_HK',
+                                    KeyName=key_name,
                                     SecurityGroupIds=[
                                     'sg-0a4dee30fbd794740',
                                     ],
@@ -28,6 +30,8 @@ new_instance = ec2.create_instances( # instance creation
                                     temctl enable httpd
                                     systemctl start httpd
                                     echo '<html>' > index.html
+                                    echo 'Welcome to Dales EC2 instance ' >> index.html
+                                    echo '<br>' >> index.html
                                     echo 'Private IP address: ' >> index.html
                                     curl http://169.254.169.254/latest/meta-data/local-ipv4 >> index.html
                                     echo '<br>' >> index.html
@@ -86,7 +90,7 @@ htmlcontent = '''
 shellcommand = "echo '" + htmlcontent + "' > index.html"
 
 try:
-    response = s3.Object(bucket_name, "local-filename.jpg").put(ACL='public-read', Body=open("local-filename.jpg", 'rb')) # adding image to bucket
+    response = s3.Object(bucket_name, "local-filename.jpg").put(ACL='public-read', Body=open("local-filename.jpg", 'rb'), ContentType='image/jpeg') # adding image to bucket
     response1 = s3.Object(bucket_name, "index.html").put(ACL='public-read', Body=open("index.html", 'rb'), ContentType='text/html')  # adding html file to bucket
     print (response)
     print (response1)
@@ -102,20 +106,24 @@ try:
     webbrowser.open_new_tab('https://projectx-bucket1-daleh1610.s3.amazonaws.com/index.html')
 except Exception as error:
     print (error)
+print('')
+cmd1 = "ssh -o StrictHostKeyChecking=no -i " + key_name + ".pem ec2-user@" + ip_address + " 'pwd'" # establishing the ssh connection
 
-cmd1 = "ssh -o StrictHostKeyChecking=no -i Dale_HK.pem ec2-user@" + ip_address + " 'pwd'" # establishing the ssh connection
+cmd2 = "scp -i " + key_name + ".pem monitor.sh ec2-user@" + ip_address + ":." # secure copying the file to server
 
-cmd2 = "scp -i Dale_HK.pem monitor.sh ec2-user@" + ip_address + ":." # secure copying the file to server
+cmd3 = "ssh -i " + key_name + ".pem ec2-user@" + ip_address + ' chmod 700 monitor.sh' # changing permissions
 
-cmd3 = "ssh -i Dale_HK.pem ec2-user@" + ip_address + ' chmod 700 monitor.sh' # changing permissions
-
-cmd4 = "ssh -i Dale_HK.pem ec2-user@" + ip_address + ' ./monitor.sh' # running file
+cmd4 = "ssh -i " + key_name + ".pem ec2-user@" + ip_address + ' ./monitor.sh' # running file
 
 os.system(cmd1)
+print('Establishing the SSH connection to ' + ip_address)
 os.system(cmd2)
+print('Secure copying monitor.sh to server successful')
 os.system(cmd3)
+print('Changing monitor.sh file permissions')
 os.system(cmd4)
-
+print('Running file')
+print('')
 print('')
 print("Checking CPU Utilization, please wait")
 instance.monitor()  # Enables detailed monitoring on instance (1-minute intervals)
@@ -134,4 +142,3 @@ response = metric.get_statistics(StartTime = datetime.utcnow() - timedelta(minut
 
 print ("Average CPU utilisation:", response['Datapoints'][0]['Average'], response['Datapoints'][0]['Unit'])
 # print (response)   # for debugging only
-
